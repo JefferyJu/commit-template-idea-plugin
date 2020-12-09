@@ -17,7 +17,7 @@ public enum ChangeType {
     BUILD("Builds", "Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)"),
     CI("Continuous Integrations", "Changes to our CI configuration files and scripts (example scopes: Travis, Circle, BrowserStack, SauceLabs)"),
     CHORE("Chores", "Other changes that don't modify src or test files"),
-    REVERT("Reverts", "Reverts a previous commit");
+    DEPS("deps", "Upgrade depends");
 
     public final String title;
     public final String description;

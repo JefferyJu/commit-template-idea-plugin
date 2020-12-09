@@ -11,13 +11,8 @@ import java.util.Enumeration;
  */
 public class CommitPanel {
     private JPanel mainPanel;
-    private JComboBox<String> changeScope;
     private JTextField shortDescription;
     private JTextArea longDescription;
-    private JTextArea breakingChanges;
-    private JTextField closedIssues;
-    private JCheckBox wrapTextCheckBox;
-    private JCheckBox skipCICheckBox;
     private JRadioButton featRadioButton;
     private JRadioButton fixRadioButton;
     private JRadioButton docsRadioButton;
@@ -25,19 +20,18 @@ public class CommitPanel {
     private JRadioButton refactorRadioButton;
     private JRadioButton perfRadioButton;
     private JRadioButton testRadioButton;
-    private JRadioButton buildRadioButton;
-    private JRadioButton ciRadioButton;
     private JRadioButton choreRadioButton;
-    private JRadioButton revertRadioButton;
+    private JRadioButton depsRadioButton;
+    private JTextField zhaiyao;
     private ButtonGroup changeTypeGroup;
 
     CommitPanel(Project project, CommitMessage commitMessage) {
         File workingDirectory = new File(project.getBasePath());
         GitLogQuery.Result result = new GitLogQuery(workingDirectory).execute();
-        if (result.isSuccess()) {
-            changeScope.addItem(""); // no value by default
-            result.getScopes().forEach(changeScope::addItem);
-        }
+//        if (result.isSuccess()) {
+//            changeScope.addItem(""); // no value by default
+//            result.getScopes().forEach(changeScope::addItem);
+//        }
 
         if (commitMessage != null) {
             restoreValuesFromParsedCommitMessage(commitMessage);
@@ -51,13 +45,9 @@ public class CommitPanel {
     CommitMessage getCommitMessage() {
         return new CommitMessage(
                 getSelectedChangeType(),
-                (String) changeScope.getSelectedItem(),
                 shortDescription.getText().trim(),
                 longDescription.getText().trim(),
-                breakingChanges.getText().trim(),
-                closedIssues.getText().trim(),
-                wrapTextCheckBox.isSelected(),
-                skipCICheckBox.isSelected()
+                zhaiyao.getText().trim()
         );
     }
 
@@ -82,11 +72,8 @@ public class CommitPanel {
                 }
             }
         }
-        changeScope.setSelectedItem(commitMessage.getChangeScope());
         shortDescription.setText(commitMessage.getShortDescription());
         longDescription.setText(commitMessage.getLongDescription());
-        breakingChanges.setText(commitMessage.getBreakingChanges());
-        closedIssues.setText(commitMessage.getClosedIssues());
-        skipCICheckBox.setSelected(commitMessage.isSkipCI());
+        zhaiyao.setText(commitMessage.getZhaiyao());
     }
 }

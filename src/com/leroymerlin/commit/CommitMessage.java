@@ -14,11 +14,11 @@ import static org.apache.commons.lang.StringUtils.isNotBlank;
 class CommitMessage {
     private static final int MAX_LINE_LENGTH = 72; // https://stackoverflow.com/a/2120040/5138796
 
-    public static final Pattern COMMIT_FIRST_LINE_FORMAT = Pattern.compile("^([a-z]+)(\\((.+)\\))?: (.+)");
+    public static final Pattern COMMIT_FIRST_LINE_FORMAT = Pattern.compile("^(.*)(M.*)  (\\[.*\\])(.*)");
     public static final Pattern COMMIT_CLOSES_FORMAT = Pattern.compile("Closes (.+)");
 
     private ChangeType changeType;
-    private String changeScope, shortDescription, longDescription, breakingChanges, closedIssues;
+    private String changeScope, shortDescription, longDescription, breakingChanges, closedIssues, zhaiyao;
     private boolean wrapText = true;
     private boolean skipCI = false;
 
@@ -28,79 +28,49 @@ class CommitMessage {
         this.closedIssues = "";
     }
 
-    public CommitMessage(ChangeType changeType, String changeScope, String shortDescription, String longDescription,
-                         String breakingChanges, String closedIssues, boolean wrapText, boolean skipCI) {
+    public CommitMessage(ChangeType changeType, String shortDescription, String longDescription, String zhaiyao) {
         this.changeType = changeType;
-        this.changeScope = changeScope;
         this.shortDescription = shortDescription;
         this.longDescription = longDescription;
-        this.breakingChanges = breakingChanges;
-        this.closedIssues = closedIssues;
-        this.wrapText = wrapText;
-        this.skipCI = skipCI;
+        this.zhaiyao = zhaiyao;
     }
 
     @Override
     public String toString() {
+        if (isNotBlank(shortDescription)) {
+            shortDescription = shortDescription.replaceAll("，", ",").replaceAll(" ", "");
+        }
         StringBuilder builder = new StringBuilder();
-        builder.append(changeType.label());
-        if (isNotBlank(changeScope)) {
+        if (isNotBlank(shortDescription)) {
             builder
-                    .append('(')
-                    .append(changeScope)
-                    .append(')');
+                    .append("修改单编号：")
+                    .append(shortDescription.trim().toUpperCase())
+                    .append("  ");
         }
         builder
-                .append(": ")
-                .append(shortDescription);
+                .append("[")
+                .append(changeType.label())
+                .append("]")
+                .append(zhaiyao);
 
         if (isNotBlank(longDescription)) {
             builder
                     .append(System.lineSeparator())
                     .append(System.lineSeparator())
-                    .append(wrapText ? WordUtils.wrap(longDescription, MAX_LINE_LENGTH) : longDescription);
+                    .append(longDescription);
         }
-
-        if (isNotBlank(breakingChanges)) {
-            String content = "BREAKING CHANGE: " + breakingChanges;
-            builder
-                    .append(System.lineSeparator())
-                    .append(System.lineSeparator())
-                    .append(wrapText ? WordUtils.wrap(content, MAX_LINE_LENGTH) : content);
-        }
-
-        if (isNotBlank(closedIssues)) {
-            builder.append(System.lineSeparator());
-            for (String closedIssue : closedIssues.split(",")) {
-                builder
-                        .append(System.lineSeparator())
-                        .append("Closes ")
-                        .append(formatClosedIssue(closedIssue));
-            }
-        }
-
-        if (skipCI) {
-            builder
-                    .append(System.lineSeparator())
-                    .append(System.lineSeparator())
-                    .append("[skip ci]");
-        }
-
         return builder.toString();
     }
 
-    private String formatClosedIssue(String closedIssue) {
-        String trimmed = closedIssue.trim();
-        return (StringUtils.isNumeric(trimmed) ? "#" : "") + trimmed;
-    }
 
     public static CommitMessage parse(String message) {
         CommitMessage commitMessage = new CommitMessage();
 
         try {
             Matcher matcher = COMMIT_FIRST_LINE_FORMAT.matcher(message);
-            if (!matcher.find()) return commitMessage;
-
+            if (!matcher.find()) {
+                return commitMessage;
+            }
             commitMessage.changeType = ChangeType.valueOf(matcher.group(1).toUpperCase());
             commitMessage.changeScope = matcher.group(3);
             commitMessage.shortDescription = matcher.group(4);
@@ -114,7 +84,8 @@ class CommitMessage {
             stringBuilder = new StringBuilder();
             for (; pos < strings.length; pos++) {
                 String lineString = strings[pos];
-                if (lineString.startsWith("BREAKING") || lineString.startsWith("Closes") || lineString.equalsIgnoreCase("[skip ci]")) break;
+                if (lineString.startsWith("BREAKING") || lineString.startsWith("Closes") || lineString.equalsIgnoreCase("[skip ci]"))
+                    break;
                 stringBuilder.append(lineString).append('\n');
             }
             commitMessage.longDescription = stringBuilder.toString().trim();
@@ -136,7 +107,8 @@ class CommitMessage {
             commitMessage.closedIssues = stringBuilder.toString();
 
             commitMessage.skipCI = message.contains("[skip ci]");
-        } catch (RuntimeException e) {}
+        } catch (RuntimeException e) {
+        }
 
         return commitMessage;
     }
@@ -167,5 +139,13 @@ class CommitMessage {
 
     public boolean isSkipCI() {
         return skipCI;
+    }
+
+    public String getZhaiyao() {
+        return zhaiyao;
+    }
+
+    public void setZhaiyao(String zhaiyao) {
+        this.zhaiyao = zhaiyao;
     }
 }
